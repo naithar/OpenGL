@@ -13,6 +13,17 @@ struct Texture {
         return Parameter(target: target)
     }
     
+    func bind(_ texture: Int, to: gl.Target) {
+        
+    }
+    
+    func generate(count: Int) -> [Int] {
+        return []
+    }
+}
+
+extension Texture {
+    
     struct Parameter {
         
         private var target: gl.Target
@@ -62,10 +73,11 @@ struct gl {
     
     enum Target {
         
-        case _1D
-        case _2D
-        case _3D
-        case cubeMap
+        case texture1D
+        case texture2D
+        case texture3D
+        case textureCubeMap
+//        GL_COLOR_TABLE, GL_POST_CONVOLUTION_COLOR_TABLE, GL_POST_COLOR_MATRIX_COLOR_TABLE, GL_PROXY_COLOR_TABLE, GL_PROXY_POST_CONVOLUTION_COLOR_TABLE, or GL_PROXY_POST_COLOR_MATRIX_COLOR_TABLE.
     }
     
     struct BufferMask: OptionSet {
@@ -98,12 +110,16 @@ struct gl {
         
     }
     
+    static func error() throws {
+        
+    }
+    
 }
 
 
-gl.texture.parameters(for: ._1D).set(.nearest, for: .magFilter)
+gl.texture.parameters(for: .texture1D).set(.nearest, for: .magFilter)
 
-let value: [Texture.Parameter.Value] = gl.texture.parameters(for: ._1D).get(.magFilter)
+let value: [Texture.Parameter.Value] = gl.texture.parameters(for: .texture1D).get(.magFilter)
 
 gl.begin()
 gl.end()
