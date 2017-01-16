@@ -3,6 +3,21 @@ import COpenGLOSX
 
 public enum gl {
     
+    public struct Color {
+    
+        public var red: Double
+        public var green: Double
+        public var blue: Double
+        public var alpha: Double
+        
+        public init(red: Double, green: Double, blue: Double, alpha: Double) {
+            self.red = red
+            self.green = green
+            self.blue = blue
+            self.alpha = alpha
+        }
+    }
+    
     public struct BufferBitMask: OptionSet {
         
         public let rawValue: Int32
@@ -20,14 +35,77 @@ public enum gl {
         glViewport(GLint(x), GLint(y), GLsizei(width), GLsizei(height))
     }
     
-    public static func clearColor(_ red: Double = 1, _ green: Double = 1, _ blue: Double = 1, _ alpha: Double = 1) {
-        glClearColor(GLclampf(red), GLclampf(green), GLclampf(blue), GLclampf(alpha))
+    public static func clear(color: Color) {
+        glClearColor(GLclampf(color.red), GLclampf(color.green), GLclampf(color.blue), GLclampf(color.alpha))
     }
     
     public static func clear(_ mask: BufferBitMask) {
         let mask = GLbitfield(mask.rawValue)
         glClear(mask)
     }
+    
+    public enum MatrixMode {
+        
+        case modelView
+        case projection
+        case texture
+        case color
+        
+        internal var raw: GLenum {
+            switch self {
+            case .modelView:
+                return GLenum(GL_MODELVIEW)
+            case .projection:
+                return GLenum(GL_PROJECTION)
+            case .texture:
+                return GLenum(GL_TEXTURE)
+            case .color:
+                return GLenum(GL_COLOR)
+            }
+        }
+    }
+    
+    public static func matrixMode(_ mode: MatrixMode) {
+        glMatrixMode(mode.raw)
+    }
+    
+    public static func loadIdentity() {
+        glLoadIdentity()
+    }
+    
+    public static func ortho(left: Double, right: Double, bottom: Double, top: Double, near: Double, far: Double) {
+        glOrtho(left, right, bottom, top, near, far)
+    }
+    
+    public enum DrawMode {
+        
+        case triangles
+        case quads
+        
+        internal var raw: GLenum {
+            switch self {
+            case .triangles:
+                return GLenum(GL_TRIANGLES)
+            case .quads:
+                return GLenum(GL_QUADS)
+            }
+        }
+    }
+    
+    public static func begin(_ mode: DrawMode) {
+        glBegin(mode.raw)
+    }
+    
+    public static func end() {
+        glEnd()
+    }
+    
+    public static func begin(_ mode: DrawMode, draw: (Void) -> Void) {
+        self.begin(mode)
+        draw()
+        self.end()
+    }
+    
 }
 
 
