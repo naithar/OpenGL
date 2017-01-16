@@ -1,8 +1,10 @@
 import PackageDescription
 
 let package = Package(
-    name: "sogl",
-    dependencies: [
-	.Package(url: "https://github.com/naithar/COpenGL.git", majorVersion: 0)
+    name: "OpenGL",
+    targets: [
+        Target(name: "COpenGL", dependencies: []),
+        Target(name: "OpenGL", dependencies: ["COpenGL"]),
+    ], dependencies: [
     ]
 )

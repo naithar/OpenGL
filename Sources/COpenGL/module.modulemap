@@ -1,1 +1,10 @@
+module COpenGLOSX [system] {
+    header "shim.h"
+    export *
+}
 
+module COpenGLLinux [system] {
+    header "shim.h"
+    link "GL"
+    export *
+}
