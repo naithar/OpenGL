@@ -1,5 +1,36 @@
 import COpenGLOSX
 
+
+public enum gl {
+    
+    public struct BufferBitMask: OptionSet {
+        
+        public let rawValue: Int32
+        
+        public init(rawValue: Int32) {
+            self.rawValue = rawValue
+        }
+        
+        public static let buffer = BufferBitMask(rawValue: GL_COLOR_BUFFER_BIT)
+        public static let stencil = BufferBitMask(rawValue: GL_STENCIL_BUFFER_BIT)
+        public static let depth = BufferBitMask(rawValue: GL_DEPTH_BUFFER_BIT)
+    }
+    
+    public static func viewport(x: Int, y: Int, width: Int, height: Int) {
+        glViewport(GLint(x), GLint(y), GLsizei(width), GLsizei(height))
+    }
+    
+    public static func clearColor(_ red: Double = 1, _ green: Double = 1, _ blue: Double = 1, _ alpha: Double = 1) {
+        glClearColor(GLclampf(red), GLclampf(green), GLclampf(blue), GLclampf(alpha))
+    }
+    
+    public static func clear(_ mask: BufferBitMask) {
+        let mask = GLbitfield(mask.rawValue)
+        glClear(mask)
+    }
+}
+
+
 //https://www.opengl.org/sdk/docs/man/
 //print("Hello, world!")
 /*
@@ -80,15 +111,7 @@ struct gl {
 //        GL_COLOR_TABLE, GL_POST_CONVOLUTION_COLOR_TABLE, GL_POST_COLOR_MATRIX_COLOR_TABLE, GL_PROXY_COLOR_TABLE, GL_PROXY_POST_CONVOLUTION_COLOR_TABLE, or GL_PROXY_POST_COLOR_MATRIX_COLOR_TABLE.
     }
     
-    struct BufferMask: OptionSet {
-        
-        let rawValue: Int
-        
-        static let color = BufferMask(rawValue: 1 << 0)
-        static let buffer = BufferMask(rawValue: 1 << 1)
-        static let accum = BufferMask(rawValue: 1 << 2)
-        static let stencil = BufferMask(rawValue: 1 << 3)
-    }
+ 
     
     static var texture: Texture {
         return Texture()
@@ -102,13 +125,7 @@ struct gl {
         
     }
     
-    static func color(_ red: Double = 1, _ green: Double = 1, _ blue: Double = 1, _ alpha: Double = 1) {
-        
-    }
-    
-    static func clear(mask: BufferMask) {
-        
-    }
+ 
     
     static func error() throws {
         
