@@ -77,6 +77,17 @@ public enum gl {
         glOrtho(left, right, bottom, top, near, far)
     }
     
+    public static func frustum(left: Double, right: Double, bottom: Double, top: Double, near: Double, far: Double) {
+        glFrustum(left, right, bottom, top, near, far)
+    }
+    
+    public static func perspective(angle: Double, aspect: Double, near: Double, far: Double) {
+        let height = tan( angle / 360 * M_PI ) * near;
+        let width = height * aspect;
+        
+        glFrustum(-width, width, -height, height, near, far)
+    }
+    
     public enum DrawMode {
         
         case triangles
