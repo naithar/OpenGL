@@ -49,6 +49,10 @@ public enum gl {
         glClear(mask)
     }
     
+    public static func flush() {
+        glFlush()
+    }
+    
     public enum MatrixMode {
         
         case modelView
