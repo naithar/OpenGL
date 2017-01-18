@@ -6,21 +6,68 @@
     import OpenGLES
 #endif
 
-
 public protocol Gettable {
     
+    associatedtype glType
+    associatedtype swiftType
     
-    static var buffer: [Self] { get }
-    static var get: (GLenum, UnsafeMutablePointer<Self>) -> () { get }
+    static var buffer: [glType] { get }
+    static var get: (GLenum, UnsafeMutablePointer<glType>) -> () { get }
+    
+    static func convert(_ value: glType) -> swiftType
 }
 
 extension GLfloat: Gettable {
     
+    public typealias glType = GLfloat
+    public typealias swiftType = Float
+    
     public static var buffer: [GLfloat] {
         return [GLfloat](repeating: 0, count: 4)
     }
+    
     public static var get: (GLenum, UnsafeMutablePointer<GLfloat>) -> () {
         return glGetFloatv
+    }
+    
+    public static func convert(_ value: GLfloat) -> Float {
+        return value
+    }
+}
+
+extension GLdouble: Gettable {
+    
+    public typealias glType = GLdouble
+    public typealias swiftType = Double
+    
+    public static var buffer: [GLdouble] {
+        return [GLdouble](repeating: 0, count: 4)
+    }
+    
+    public static var get: (GLenum, UnsafeMutablePointer<GLdouble>) -> () {
+        return glGetDoublev
+    }
+    
+    public static func convert(_ value: GLdouble) -> Double {
+        return value
+    }
+}
+
+extension GLboolean: Gettable {
+    
+    public typealias glType = GLboolean
+    public typealias swiftType = Bool
+    
+    public static var buffer: [GLboolean] {
+        return [GLboolean](repeating: 0, count: 4)
+    }
+    
+    public static var get: (GLenum, UnsafeMutablePointer<GLboolean>) -> () {
+        return glGetBooleanv
+    }
+    
+    public static func convert(_ value: GLboolean) -> Bool {
+        return value != 0
     }
 }
 
@@ -96,10 +143,10 @@ public enum gl {
         #endif
     }
     
-    public static func get<T: Gettable>(_ type: T.Type, key: GLenum, closure: ([T]) -> ()) {
+    public static func get<T: Gettable>(_ type: T.Type, key: GLenum, closure: ([T.swiftType]) -> ()) {
         var result = T.buffer
         T.get(key, &result)
-        closure(result)
+        closure(result.map { T.convert($0) })
     }
     
     public enum MatrixMode {
