@@ -9,17 +9,33 @@
 
 public enum gl {
     
+    //glGetError() // https://www.khronos.org/opengl/wiki/GLAPI/glGetError
+    
     public struct Color {
         public var red: Double
         public var green: Double
         public var blue: Double
         public var alpha: Double
         
-        public init(red: Double, green: Double, blue: Double, alpha: Double) {
+        public init(red: Double, green: Double, blue: Double, alpha: Double = 1) {
             self.red = red
             self.green = green
             self.blue = blue
             self.alpha = alpha
+        }
+    }
+    
+    public struct Vertex {
+        public var x: Double
+        public var y: Double
+        public var z: Double
+        public var w: Double
+        
+        public init(x: Double, y: Double, z: Double = 0, w: Double = 1) {
+            self.x = x
+            self.y = y
+            self.z = z
+            self.w = w
         }
     }
     
@@ -31,7 +47,7 @@ public enum gl {
             self.rawValue = rawValue
         }
         
-        public static let buffer = BufferBitMask(rawValue: GL_COLOR_BUFFER_BIT)
+        public static let color = BufferBitMask(rawValue: GL_COLOR_BUFFER_BIT)
         public static let stencil = BufferBitMask(rawValue: GL_STENCIL_BUFFER_BIT)
         public static let depth = BufferBitMask(rawValue: GL_DEPTH_BUFFER_BIT)
     }
@@ -51,6 +67,16 @@ public enum gl {
     
     public static func flush() {
         glFlush()
+    }
+    
+    public static func color(_ color: gl.Color) {
+        glColor4f(GLfloat(color.red), GLfloat(color.green), GLfloat(color.blue), GLfloat(color.alpha))
+    }
+    
+    public static func vertex(_ vertex: gl.Vertex) {
+        #if !os(iOS)
+            glVertex4f(GLfloat(vertex.x), GLfloat(vertex.y), GLfloat(vertex.z), GLfloat(vertex.w))
+        #endif
     }
     
     public enum MatrixMode {
@@ -134,25 +160,36 @@ public enum gl {
         }
     }
     
+//    public static func Drawer {
     
-    public static func begin(_ mode: DrawMode) {
+        //func vertex
+        //func color
+        //func index
+        
+//    }
+    
+    //newList
+    //Certain commands are not compiled into the display list but are executed immediately, regardless of the display-list mode. These commands are glAreTexturesResident, glColorPointer, glDeleteLists, glDeleteTextures, glDisableClientState, glEdgeFlagPointer, glEnableClientState, glFeedbackBuffer, glFinish, glFlush, glGenLists, glGenTextures, glIndexPointer, glInterleavedArrays, glIsEnabled, glIsList, glIsTexture, glNormalPointer, glPopClientAttrib, glPixelStore, glPushClientAttrib, glReadPixels, glRenderMode, glSelectBuffer, glTexCoordPointer, glVertexPointer, and all of the glGet commands.
+    
+
+    
+    //drawArray client state
+    //draw?
+    public static func begin(_ mode: DrawMode, draw: (Void) -> Void) { //throws
+        //draw.color
+        //draw.index
+        //draw.vertex ??
+        //
+        //The commands are glVertex, glColor, glSecondaryColor, glIndex, glNormal, glFogCoord, glTexCoord, glMultiTexCoord, glVertexAttrib, glEvalCoord, glEvalPoint, glArrayElement, glMaterial, and glEdgeFlag.
         #if !os(iOS)
             glBegin(mode.raw)
-        #endif
-    }
-    
-    public static func end() {
-        #if !os(iOS)
+            draw()
             glEnd()
         #endif
-    }
-    
-    public static func begin(_ mode: DrawMode, draw: (Void) -> Void) {
-        #if !os(iOS)
-            self.begin(mode)
-            draw()
-            self.end()
-        #endif
+        //else 
+        //stack
+        //https://pandorawiki.org/Porting_to_GLES_from_GL
+        
     }
     
 }
