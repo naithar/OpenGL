@@ -7,6 +7,23 @@
 #endif
 
 
+public protocol Gettable {
+    
+    
+    static var buffer: [Self] { get }
+    static var get: (GLenum, UnsafeMutablePointer<Self>) -> () { get }
+}
+
+extension GLfloat: Gettable {
+    
+    public static var buffer: [GLfloat] {
+        return [GLfloat](repeating: 0, count: 4)
+    }
+    public static var get: (GLenum, UnsafeMutablePointer<GLfloat>) -> () {
+        return glGetFloatv
+    }
+}
+
 public enum gl {
     
     //glGetError() // https://www.khronos.org/opengl/wiki/GLAPI/glGetError
@@ -77,6 +94,12 @@ public enum gl {
         #if !os(iOS)
             glVertex4f(GLfloat(vertex.x), GLfloat(vertex.y), GLfloat(vertex.z), GLfloat(vertex.w))
         #endif
+    }
+    
+    public static func get<T: Gettable>(_ type: T.Type, key: GLenum, closure: ([T]) -> ()) {
+        var result = T.buffer
+        T.get(key, &result)
+        closure(result)
     }
     
     public enum MatrixMode {
