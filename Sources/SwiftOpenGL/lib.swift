@@ -8,19 +8,19 @@
 
 public protocol Gettable {
     
-    associatedtype glType
-    associatedtype swiftType
+    associatedtype GLType
+    associatedtype SwiftType
     
-    static var buffer: [glType] { get }
-    static var get: (GLenum, UnsafeMutablePointer<glType>) -> () { get }
+    static var buffer: [GLType] { get }
+    static var get: (GLenum, UnsafeMutablePointer<GLType>) -> () { get }
     
-    static func convert(_ value: glType) -> swiftType
+    static func convert(_ value: GLType) -> SwiftType
 }
 
 extension GLfloat: Gettable {
     
-    public typealias glType = GLfloat
-    public typealias swiftType = Float
+    public typealias GLType = GLfloat
+    public typealias SwiftType = Float
     
     public static var buffer: [GLfloat] {
         return [GLfloat](repeating: 0, count: 4)
@@ -37,8 +37,8 @@ extension GLfloat: Gettable {
 
 extension GLdouble: Gettable {
     
-    public typealias glType = GLdouble
-    public typealias swiftType = Double
+    public typealias GLType = GLdouble
+    public typealias SwiftType = Double
     
     public static var buffer: [GLdouble] {
         return [GLdouble](repeating: 0, count: 4)
@@ -55,8 +55,8 @@ extension GLdouble: Gettable {
 
 extension GLboolean: Gettable {
     
-    public typealias glType = GLboolean
-    public typealias swiftType = Bool
+    public typealias GLType = GLboolean
+    public typealias SwiftType = Bool
     
     public static var buffer: [GLboolean] {
         return [GLboolean](repeating: 0, count: 4)
@@ -87,6 +87,62 @@ public enum gl {
             self.blue = blue
             self.alpha = alpha
         }
+        
+        public init(red: Float, green: Float, blue: Float, alpha: Float = 1) {
+            self.red = Double(red)
+            self.green = Double(green)
+            self.blue = Double(blue)
+            self.alpha = Double(alpha)
+        }
+        
+        public init(red: Int, green: Int, blue: Int, alpha: Int = 1) {
+            self.red = Double(red)
+            self.green = Double(green)
+            self.blue = Double(blue)
+            self.alpha = Double(alpha)
+        }
+        
+        public init?(buffer: [Double]) {
+            guard buffer.count > 2 else { return nil }
+            
+            self.red = buffer[0]
+            self.green = buffer[1]
+            self.blue = buffer[2]
+            
+            if buffer.count > 3 {
+                self.alpha = buffer[3]
+            } else {
+                self.alpha = 1
+            }
+        }
+        
+        public init?(buffer: [Float]) {
+            guard buffer.count > 2 else { return nil }
+            
+            self.red = Double(buffer[0])
+            self.green = Double(buffer[1])
+            self.blue = Double(buffer[2])
+            
+            if buffer.count > 3 {
+                self.alpha = Double(buffer[3])
+            } else {
+                self.alpha = 1
+            }
+        }
+        
+        public init?(buffer: [Int]) {
+            guard buffer.count > 2 else { return nil }
+            
+            self.red = Double(buffer[0])
+            self.green = Double(buffer[1])
+            self.blue = Double(buffer[2])
+            
+            if buffer.count > 3 {
+                self.alpha = Double(buffer[3])
+            } else {
+                self.alpha = 1
+            }
+        }
     }
     
     public struct Vertex {
@@ -100,6 +156,83 @@ public enum gl {
             self.y = y
             self.z = z
             self.w = w
+        }
+        
+        public init(x: Float, y: Float, z: Float = 0, w: Float = 1) {
+            self.x = Double(x)
+            self.y = Double(y)
+            self.z = Double(z)
+            self.w = Double(w)
+        }
+        
+        public init(x: Int, y: Int, z: Int = 0, w: Int = 1) {
+            self.x = Double(x)
+            self.y = Double(y)
+            self.z = Double(z)
+            self.w = Double(w)
+        }
+        
+        public init?(buffer: [Double]) {
+            guard buffer.count > 1 else { return nil }
+            
+            self.x = buffer[0]
+            self.y = buffer[1]
+            
+            guard buffer.count > 2 else {
+                self.z = 0
+                self.w = 1
+                return
+            }
+            
+            self.z = buffer[2]
+            
+            if buffer.count > 3 {
+                self.w = buffer[3]
+            } else {
+                self.w = 1
+            }
+        }
+        
+        public init?(buffer: [Float]) {
+            guard buffer.count > 1 else { return nil }
+            
+            self.x = Double(buffer[0])
+            self.y = Double(buffer[1])
+            
+            guard buffer.count > 2 else {
+                self.z = 0
+                self.w = 1
+                return
+            }
+            
+            self.z = Double(buffer[2])
+            
+            if buffer.count > 3 {
+                self.w = Double(buffer[3])
+            } else {
+                self.w = 1
+            }
+        }
+        
+        public init?(buffer: [Int]) {
+            guard buffer.count > 1 else { return nil }
+            
+            self.x = Double(buffer[0])
+            self.y = Double(buffer[1])
+            
+            guard buffer.count > 2 else {
+                self.z = 0
+                self.w = 1
+                return
+            }
+            
+            self.z = Double(buffer[2])
+            
+            if buffer.count > 3 {
+                self.w = Double(buffer[3])
+            } else {
+                self.w = 1
+            }
         }
     }
     
@@ -143,7 +276,7 @@ public enum gl {
         #endif
     }
     
-    public static func get<T: Gettable>(_ type: T.Type, key: GLenum, closure: ([T.swiftType]) -> ()) {
+    public static func get<T: Gettable>(_ type: T.Type, key: GLenum, closure: ([T.SwiftType]) -> ()) {
         var result = T.buffer
         T.get(key, &result)
         closure(result.map { T.convert($0) })
