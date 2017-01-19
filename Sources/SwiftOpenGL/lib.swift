@@ -5,7 +5,7 @@
 #if os(iOS)
     import OpenGLES
 #endif
-
+//https://www.khronos.org/opengl/wiki/Generic_Vertex_Attribute_-_examples
 public protocol Gettable {
     
     associatedtype GLType
