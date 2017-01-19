@@ -70,6 +70,7 @@ extension GLboolean: Gettable {
         return value != 0
     }
 }
+//Int, GLint
 
 public enum gl {
     
@@ -276,10 +277,11 @@ public enum gl {
         #endif
     }
     
-    public static func get<T: Gettable>(_ type: T.Type, key: GLenum, closure: ([T.SwiftType]) -> ()) {
-        var result = T.buffer
+    //throws?
+    public static func get<T: Gettable, Result>(_ type: T.Type, key: GLenum, closure: ([T.SwiftType]) -> Result) -> Result {
+        var result = T.buffer //T.buffer(for: key) //key { size, value }
         T.get(key, &result)
-        closure(result.map { T.convert($0) })
+        return closure(result.map { T.convert($0) })
     }
     
     public enum MatrixMode {
