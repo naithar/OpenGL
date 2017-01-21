@@ -35,23 +35,25 @@ extension GLfloat: Gettable {
     }
 }
 
-extension GLdouble: Gettable {
-    
-    public typealias GLType = GLdouble
-    public typealias SwiftType = Double
-    
-    public static var buffer: [GLdouble] {
-        return [GLdouble](repeating: 0, count: 4)
+#if !os(iOS)
+    extension GLdouble: Gettable {
+        
+        public typealias GLType = GLdouble
+        public typealias SwiftType = Double
+        
+        public static var buffer: [GLdouble] {
+            return [GLdouble](repeating: 0, count: 4)
+        }
+        
+        public static var get: (GLenum, UnsafeMutablePointer<GLdouble>) -> () {
+            return glGetDoublev
+        }
+        
+        public static func convert(_ value: GLdouble) -> Double {
+            return value
+        }
     }
-    
-    public static var get: (GLenum, UnsafeMutablePointer<GLdouble>) -> () {
-        return glGetDoublev
-    }
-    
-    public static func convert(_ value: GLdouble) -> Double {
-        return value
-    }
-}
+#endif
 
 extension GLboolean: Gettable {
     
@@ -276,10 +278,10 @@ public enum gl {
         #endif
     }
     
-    public static func get<T: Gettable>(_ type: T.Type, key: GLenum, closure: ([T.SwiftType]) -> ()) {
+    public static func get<T: Gettable, Result>(_ type: T.Type, key: GLenum, closure: ([T.SwiftType]) throws -> Result) rethrows -> Result {
         var result = T.buffer
         T.get(key, &result)
-        closure(result.map { T.convert($0) })
+        return try closure(result.map { T.convert($0) })
     }
     
     public enum MatrixMode {
