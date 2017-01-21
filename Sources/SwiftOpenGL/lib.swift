@@ -84,6 +84,15 @@ public enum gl {
         public var blue: Double
         public var alpha: Double
         
+        internal var buffer: [GLfloat] {
+            return [
+                GLfloat(self.red),
+                GLfloat(self.green),
+                GLfloat(self.blue),
+                GLfloat(self.alpha)
+            ]
+        }
+        
         public init(red: Double, green: Double, blue: Double, alpha: Double = 1) {
             self.red = red
             self.green = green
@@ -173,6 +182,15 @@ public enum gl {
             self.y = Double(y)
             self.z = Double(z)
             self.w = Double(w)
+        }
+        
+        internal var buffer: [GLfloat] {
+            return [
+                GLfloat(self.x),
+                GLfloat(self.y),
+                GLfloat(self.z),
+                GLfloat(self.w)
+            ]
         }
         
         public init?(buffer: [Double]) {
@@ -281,7 +299,9 @@ public enum gl {
     
     public static func vertex(_ vertex: gl.Vertex) {
         #if os(iOS)
-            
+            if let context = DrawingContext.current {
+                context.add(vertex: vertex)
+            }
         #else
             glVertex4f(GLfloat(vertex.x), GLfloat(vertex.y), GLfloat(vertex.z), GLfloat(vertex.w))
         #endif
@@ -386,39 +406,79 @@ public enum gl {
         
         static var current: DrawingContext?
         
-        private var colors: [gl.Color]?
+        private var mode: DrawMode
+        private var colors = [Color]()
         private var vertexes = [Vertex]()
         
+        internal init(mode: DrawMode) {
+            self.mode = mode
+        }
+        
         internal func add(color: gl.Color) {
+            if self.vertexes.count > 0,
+                let colorBuffer = [GLfloat]?.some(gl.get(GLfloat.self, key: GLenum(GL_CURRENT_COLOR)) { $0 }),
+                let color = gl.Color(buffer: colorBuffer) {
+                for _ in 0..<self.vertexes.count {
+                    self.colors.append(color)
+                }
+            }
             
+            self.colors.append(color)
         }
         
         internal func add(vertex: gl.Vertex) {
+            self.vertexes.append(vertex)
             
+            if self.colors.count != 0,
+                self.colors.count < self.vertexes.count,
+                let lastColor = self.colors.last {
+                    self.colors.append(lastColor)
+            }
         }
         
         internal func finish() {
             guard self.vertexes.count > 0 else { return }
+            glEnableClientState(GLenum(GL_VERTEX_ARRAY))
+            
+            if self.colors.count > 0 {
+                glEnableClientState(GLenum(GL_COLOR_ARRAY))
+            }
+            
+            let vertexBuffer = self.vertexes.flatMap { $0.buffer }
+            glVertexPointer(4, GLenum(GL_FLOAT), 0, vertexBuffer);
+            
+            if self.colors.count > 0 {
+                let colorBuffer = self.colors.flatMap { $0.buffer }
+                glColorPointer(4, GLenum(GL_FLOAT), 0, colorBuffer);
+            }
+            
+            glDrawArrays(self.mode.raw, 0, GLsizei(self.vertexes.count));
+            
+            if self.colors.count > 0 {
+                glDisableClientState(GLenum(GL_COLOR_ARRAY))
+            }
+            
+            glDisableClientState(GLenum(GL_VERTEX_ARRAY))
         }
     }
     #endif
     
     //drawArray client state
     //draw?
-    public static func begin(_ mode: DrawMode, draw: (Void) -> Void) { //throws
+    public static func draw(_ mode: DrawMode, action: (Void) -> Void) { //throws
         //draw.color
         //draw.index
         //draw.vertex ??
         //
         //The commands are glVertex, glColor, glSecondaryColor, glIndex, glNormal, glFogCoord, glTexCoord, glMultiTexCoord, glVertexAttrib, glEvalCoord, glEvalPoint, glArrayElement, glMaterial, and glEdgeFlag.
         #if os(iOS)
-            DrawingContext.current = DrawingContext()
-            draw()
+            DrawingContext.current = DrawingContext(mode: mode)
+            action()
             DrawingContext.current?.finish()
             DrawingContext.current = nil
         #else
             glBegin(mode.raw)
-            draw()
+            action()
             glEnd()
         #endif
         //else 
