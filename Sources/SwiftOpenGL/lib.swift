@@ -269,11 +269,19 @@ public enum gl {
     }
     
     public static func color(_ color: gl.Color) {
+        #if os(iOS)
+            if let context = DrawingContext.current {
+                context.add(color: color)
+            }
+        #endif
+        
         glColor4f(GLfloat(color.red), GLfloat(color.green), GLfloat(color.blue), GLfloat(color.alpha))
     }
     
     public static func vertex(_ vertex: gl.Vertex) {
-        #if !os(iOS)
+        #if os(iOS)
+            
+        #else
             glVertex4f(GLfloat(vertex.x), GLfloat(vertex.y), GLfloat(vertex.z), GLfloat(vertex.w))
         #endif
     }
@@ -343,25 +351,19 @@ public enum gl {
     public enum DrawMode {
         
         case triangles
-        
-        #if !os(iOS)
         case quads
-        #endif
         
         internal var raw: GLenum {
-            #if !os(iOS)
                 switch self {
                 case .triangles:
                     return GLenum(GL_TRIANGLES)
                 case .quads:
-                    return GLenum(GL_QUADS)
+                    #if os(iOS)
+                        return GLenum(GL_TRIANGLE_FAN)
+                    #else
+                        return GLenum(GL_QUADS)
+                    #endif
                 }
-            #else
-                switch self {
-                case .triangles:
-                    return GLenum(GL_TRIANGLES)
-                }
-            #endif
         }
     }
     
@@ -376,7 +378,27 @@ public enum gl {
     //newList
     //Certain commands are not compiled into the display list but are executed immediately, regardless of the display-list mode. These commands are glAreTexturesResident, glColorPointer, glDeleteLists, glDeleteTextures, glDisableClientState, glEdgeFlagPointer, glEnableClientState, glFeedbackBuffer, glFinish, glFlush, glGenLists, glGenTextures, glIndexPointer, glInterleavedArrays, glIsEnabled, glIsList, glIsTexture, glNormalPointer, glPopClientAttrib, glPixelStore, glPushClientAttrib, glReadPixels, glRenderMode, glSelectBuffer, glTexCoordPointer, glVertexPointer, and all of the glGet commands.
     
-
+    #if os(iOS)
+    internal class DrawingContext {
+        
+        static var current: DrawingContext?
+        
+        private var colors: [gl.Color]?
+        private var vertexes = [Vertex]()
+        
+        internal func add(color: gl.Color) {
+            
+        }
+        
+        internal func add(vertex: gl.Vertex) {
+            
+        }
+        
+        internal func finish() {
+            guard self.vertexes.count > 0 else { return }
+        }
+    }
+    #endif
     
     //drawArray client state
     //draw?
@@ -386,7 +408,12 @@ public enum gl {
         //draw.vertex ??
         //
         //The commands are glVertex, glColor, glSecondaryColor, glIndex, glNormal, glFogCoord, glTexCoord, glMultiTexCoord, glVertexAttrib, glEvalCoord, glEvalPoint, glArrayElement, glMaterial, and glEdgeFlag.
-        #if !os(iOS)
+        #if os(iOS)
+            DrawingContext.current = DrawingContext()
+            draw()
+            DrawingContext.current?.finish()
+            DrawingContext.current = nil
+        #else
             glBegin(mode.raw)
             draw()
             glEnd()
