@@ -100,6 +100,16 @@ public enum gl {
     
     //glGetError() // https://www.khronos.org/opengl/wiki/GLAPI/glGetError
     
+    enum ShaderType {
+        case vertex
+        case fragment
+        case geometry
+    }
+    
+    public func shader(type: ShaderType) -> String {
+        return ""
+    }
+    
     public struct Color {
         public var red: Double
         public var green: Double
