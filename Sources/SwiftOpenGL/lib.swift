@@ -45,11 +45,13 @@ extension String: Gettable {
     }
     
     public static var get: (GLenum, UnsafeMutablePointer<String>) -> () {
-        return { (key: GLenum, pointer: UnsafeMutablePointer<String>) in
-            guard let cString = glGetString(key) else { return }
-            let string = String(cString: cString)
-            pointer.initialize(to: string)
-        }
+        return getStringWrapper
+    }
+    
+    public static func getStringWrapper(key: GLenum, pointer: UnsafeMutablePointer<String>) {
+        guard let cString = glGetString(key) else { return }
+        let string = String(cString: cString)
+        pointer.initialize(to: string)
     }
     
     public static func convert(_ value: String) -> String {
