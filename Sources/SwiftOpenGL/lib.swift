@@ -35,6 +35,28 @@ extension GLfloat: Gettable {
     }
 }
 
+extension String: Gettable {
+    
+    public typealias GLType = String
+    public typealias SwiftType = String
+    
+    public static var buffer: [String] {
+        return [String](repeating: "", count: 1)
+    }
+    
+    public static var get: (GLenum, UnsafeMutablePointer<String>) -> () {
+        return { (key: GLenum, pointer: UnsafeMutablePointer<String>) in
+            guard let cString = glGetString(key) else { return }
+            let string = String(cString: cString)
+            pointer.initialize(to: string)
+        }
+    }
+    
+    public static func convert(_ value: String) -> String {
+        return value
+    }
+}
+
 #if !os(iOS)
     extension GLdouble: Gettable {
         
@@ -401,93 +423,102 @@ public enum gl {
     
     //newList
     //Certain commands are not compiled into the display list but are executed immediately, regardless of the display-list mode. These commands are glAreTexturesResident, glColorPointer, glDeleteLists, glDeleteTextures, glDisableClientState, glEdgeFlagPointer, glEnableClientState, glFeedbackBuffer, glFinish, glFlush, glGenLists, glGenTextures, glIndexPointer, glInterleavedArrays, glIsEnabled, glIsList, glIsTexture, glNormalPointer, glPopClientAttrib, glPixelStore, glPushClientAttrib, glReadPixels, glRenderMode, glSelectBuffer, glTexCoordPointer, glVertexPointer, and all of the glGet commands.
-    
-    #if os(iOS)
-    internal class DrawingContext {
-        
-        static var current: DrawingContext?
-        
-        private var mode: DrawMode
-        private var colors = [Color]()
-        private var vertexes = [Vertex]()
-        
-        internal init(mode: DrawMode) {
-            self.mode = mode
-        }
-        
-        internal func add(color: gl.Color) {
-            if self.vertexes.count > 0,
-                let colorBuffer = [GLfloat]?.some(gl.get(GLfloat.self, key: GLenum(GL_CURRENT_COLOR)) { $0 }),
-                let color = gl.Color(buffer: colorBuffer) {
-                for _ in 0..<self.vertexes.count {
-                    self.colors.append(color)
-                }
-            }
-            
-            self.colors.append(color)
-        }
-        
-        internal func add(vertex: gl.Vertex) {
-            self.vertexes.append(vertex)
-            
-            if self.colors.count != 0,
-                self.colors.count < self.vertexes.count,
-                let lastColor = self.colors.last {
-                    self.colors.append(lastColor)
-            }
-        }
-        
-        internal func finish() {
-            guard self.vertexes.count > 0 else { return }
-            glEnableClientState(GLenum(GL_VERTEX_ARRAY))
-            
-            if self.colors.count > 0 {
-                glEnableClientState(GLenum(GL_COLOR_ARRAY))
-            }
-            
-            let vertexBuffer = self.vertexes.flatMap { $0.buffer }
-            glVertexPointer(4, GLenum(GL_FLOAT), 0, vertexBuffer);
-            
-            if self.colors.count > 0 {
-                let colorBuffer = self.colors.flatMap { $0.buffer }
-                glColorPointer(4, GLenum(GL_FLOAT), 0, colorBuffer);
-            }
-            
-            glDrawArrays(self.mode.raw, 0, GLsizei(self.vertexes.count));
-            
-            if self.colors.count > 0 {
-                glDisableClientState(GLenum(GL_COLOR_ARRAY))
-            }
-            
-            glDisableClientState(GLenum(GL_VERTEX_ARRAY))
-        }
-    }
-    #endif
+//    
+//    #if os(iOS)
+//    internal class DrawingContext {
+//        
+//        static var current: DrawingContext?
+//        
+//        private var mode: DrawMode
+//        private var colors = [Color]()
+//        private var vertexes = [Vertex]()
+//        
+//        internal init(mode: DrawMode) {
+//            self.mode = mode
+//        }
+//        
+//        internal func add(color: gl.Color) {
+//            if self.vertexes.count > 0,
+//                let colorBuffer = [GLfloat]?.some(gl.get(GLfloat.self, key: GLenum(GL_CURRENT_COLOR)) { $0 }),
+//                let color = gl.Color(buffer: colorBuffer) {
+//                for _ in 0..<self.vertexes.count {
+//                    self.colors.append(color)
+//                }
+//            }
+//            
+//            self.colors.append(color)
+//        }
+//        
+//        internal func add(vertex: gl.Vertex) {
+//            self.vertexes.append(vertex)
+//            
+//            if self.colors.count != 0,
+//                self.colors.count < self.vertexes.count,
+//                let lastColor = self.colors.last {
+//                    self.colors.append(lastColor)
+//            }
+//        }
+//        
+//        internal func finish() {
+//            guard self.vertexes.count > 0 else { return }
+//            glEnableClientState(GLenum(GL_VERTEX_ARRAY))
+//            
+//            if self.colors.count > 0 {
+//                glEnableClientState(GLenum(GL_COLOR_ARRAY))
+//            }
+//            
+//            let vertexBuffer = self.vertexes.flatMap { $0.buffer }
+//            glVertexPointer(4, GLenum(GL_FLOAT), 0, vertexBuffer);
+//            
+//            if self.colors.count > 0 {
+//                let colorBuffer = self.colors.flatMap { $0.buffer }
+//                glColorPointer(4, GLenum(GL_FLOAT), 0, colorBuffer);
+//            }
+//            
+//            glDrawArrays(self.mode.raw, 0, GLsizei(self.vertexes.count));
+//            
+//            if self.colors.count > 0 {
+//                glDisableClientState(GLenum(GL_COLOR_ARRAY))
+//            }
+//            
+//            glDisableClientState(GLenum(GL_VERTEX_ARRAY))
+//        }
+//    }
+//    #endif
     
     //drawArray client state
     //draw?
-    public static func draw(_ mode: DrawMode, action: (Void) -> Void) { //throws
-        //draw.color
-        //draw.index
-        //draw.vertex ??
-        //
-        //The commands are glVertex, glColor, glSecondaryColor, glIndex, glNormal, glFogCoord, glTexCoord, glMultiTexCoord, glVertexAttrib, glEvalCoord, glEvalPoint, glArrayElement, glMaterial, and glEdgeFlag.
-        #if os(iOS)
-            DrawingContext.current = DrawingContext(mode: mode)
-            action()
-            DrawingContext.current?.finish()
-            DrawingContext.current = nil
-        #else
-            glBegin(mode.raw)
-            action()
-            glEnd()
-        #endif
-        //else 
-        //stack
-        //https://pandorawiki.org/Porting_to_GLES_from_GL
-        
+//    public static func draw(_ mode: DrawMode, action: (Void) -> Void) { //throws
+//        //draw.color
+//        //draw.index
+//        //draw.vertex ??
+//        //
+//        //The commands are glVertex, glColor, glSecondaryColor, glIndex, glNormal, glFogCoord, glTexCoord, glMultiTexCoord, glVertexAttrib, glEvalCoord, glEvalPoint, glArrayElement, glMaterial, and glEdgeFlag.
+//        #if os(iOS)
+//            DrawingContext.current = DrawingContext(mode: mode)
+//            action()
+//            DrawingContext.current?.finish()
+//            DrawingContext.current = nil
+//        #else
+//            glBegin(mode.raw)
+//            action()
+//            glEnd()
+//        #endif
+//        //else 
+//        //stack
+//        //https://pandorawiki.org/Porting_to_GLES_from_GL
+//        
+//    }
+    
+    #if !os(iOS)
+    public static func begin(_ mode: DrawMode) {
+        glBegin(mode.raw)
     }
     
+    public static func end() {
+        glEnd()
+    }
+    #endif
 }
 
 
