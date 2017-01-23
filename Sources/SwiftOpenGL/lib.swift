@@ -100,7 +100,7 @@ public enum gl {
     
     //glGetError() // https://www.khronos.org/opengl/wiki/GLAPI/glGetError
     
-    enum ShaderType {
+    public enum ShaderType {
         case vertex
         case fragment
         case geometry
