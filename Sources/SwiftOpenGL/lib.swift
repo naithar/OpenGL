@@ -342,6 +342,8 @@ public enum gl {
         #endif
     }
     
+    //https://www.opengl.org/sdk/docs/man/html/glGetString.xhtml
+//    https://www.opengl.org/sdk/docs/man/html/glGet.xhtml
     public static func get<T: Gettable, Result>(_ type: T.Type,
                            key: GLenum,
                            closure: ([T.SwiftType]) throws -> Result) rethrows -> Result {
