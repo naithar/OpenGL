@@ -427,7 +427,7 @@ public enum gl {
         return glCreateProgram()
     }
     
-    public static func deleteShader(id: GLuint) {
+    public static func delete(shader id: GLuint) {
         glDeleteShader(id)
     }
     
@@ -437,6 +437,10 @@ public enum gl {
     
     public static func linkProgram(id: GLuint) {
         glLinkProgram(id)
+    }
+    
+    public static func isProgram(_ id: GLuint) -> Bool {
+        return glIsProgram(id) != 0
     }
     
     //https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGetProgramiv.xml
@@ -487,6 +491,10 @@ public enum gl {
         var log: [Int8] = []
         glGetProgramInfoLog(id, length, nil, &log)
         return String(validatingUTF8: log)
+    }
+    
+    public static func delete(program id: GLuint) {
+        glDeleteProgram(id)
     }
     
     public enum MatrixMode {
