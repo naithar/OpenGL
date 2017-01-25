@@ -441,9 +441,45 @@ public enum gl {
     
     //https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGetProgramiv.xml
     
-    public static func programInfo(id: GLuint, for key: GLenum) -> GLint {
+    public enum ProgramKey {
+        
+        case deleteStatus
+        case linkStatus
+        case validateStatus
+        case infoLogLength
+        case attachedShaders
+        case activeAttributes
+        case activeAttributeMaxLength
+        case activeUniforms
+        case activeUniformMaxLength
+        
+        internal var raw: Int32 {
+            switch self {
+            case .deleteStatus:
+                return GL_DELETE_STATUS
+            case .linkStatus:
+                return GL_LINK_STATUS
+            case .validateStatus:
+                return GL_VALIDATE_STATUS
+            case .infoLogLength:
+                return GL_INFO_LOG_LENGTH
+            case .attachedShaders:
+                return GL_ATTACHED_SHADERS
+            case .activeAttributes:
+                return GL_ACTIVE_ATTRIBUTES
+            case .activeAttributeMaxLength:
+                return GL_ACTIVE_ATTRIBUTE_MAX_LENGTH
+            case .activeUniforms:
+                return GL_ACTIVE_UNIFORMS
+            case .activeUniformMaxLength:
+                return GL_ACTIVE_UNIFORM_MAX_LENGTH
+            }
+        }
+    }
+    
+    public static func programInfo(id: GLuint, for key: ProgramKey) -> GLint {
         var value: GLint = 0
-        glGetProgramiv(id, key, &value)
+        glGetProgramiv(id, GLenum(key.raw), &value)
         return value
     }
     
