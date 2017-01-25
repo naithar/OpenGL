@@ -35,30 +35,6 @@ extension GLfloat: Gettable {
     }
 }
 
-extension String: Gettable {
-    
-    public typealias GLType = String
-    public typealias SwiftType = String
-    
-    public static var buffer: [String] {
-        return [String](repeating: "", count: 1)
-    }
-    
-    public static var get: (GLenum, UnsafeMutablePointer<String>) -> () {
-        return getStringWrapper
-    }
-    
-    public static func getStringWrapper(key: GLenum, pointer: UnsafeMutablePointer<String>) {
-        guard let cString = glGetString(key) else { return }
-        let string = String(cString: cString)
-        pointer.initialize(to: string)
-    }
-    
-    public static func convert(_ value: String) -> String {
-        return value
-    }
-}
-
 #if !os(iOS)
     extension GLdouble: Gettable {
         
@@ -350,6 +326,11 @@ public enum gl {
         var result = T.buffer
         T.get(key, &result)
         return try closure(result.map { T.convert($0) })
+    }
+    
+    public static func string(for key: GLenum) -> String {
+        guard let cString = glGetString(key) else { return "" }
+        return String(cString: cString)
     }
     
     public enum MatrixMode {
