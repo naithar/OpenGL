@@ -81,23 +81,13 @@ public enum gl {
     
     //glGetError() // https://www.khronos.org/opengl/wiki/GLAPI/glGetError
     
-    public enum ShaderType {
-        case vertex
-        case fragment
-        case geometry
-    }
-    
-    public func shader(type: ShaderType) -> String {
-        return ""
-    }
-    
     public struct Color {
         public var red: Double
         public var green: Double
         public var blue: Double
         public var alpha: Double
         
-        internal var buffer: [GLfloat] {
+        public var buffer: [GLfloat] {
             return [
                 GLfloat(self.red),
                 GLfloat(self.green),
@@ -197,7 +187,7 @@ public enum gl {
             self.w = Double(w)
         }
         
-        internal var buffer: [GLfloat] {
+        public var buffer: [GLfloat] {
             return [
                 GLfloat(self.x),
                 GLfloat(self.y),
@@ -366,8 +356,35 @@ public enum gl {
         return ""
     }
     
-    public static func createShader(for key: GLenum) -> GLuint {
-        return glCreateShader(key)
+    public enum ShaderType {
+        
+//        case compute //opengl 4.3
+        case vertex
+        case tessControl
+        case tessEvaluation
+        case fragment
+        case geometry
+        
+        internal var raw: Int32 {
+            switch self {
+//            case .compute:
+//                return GL_COMPUTE_SHADER
+            case .vertex:
+                return GL_VERTEX_SHADER
+            case .tessControl:
+                return GL_TESS_CONTROL_SHADER
+            case .tessEvaluation:
+                return GL_TESS_EVALUATION_SHADER
+            case .fragment:
+                return GL_FRAGMENT_SHADER
+            case .geometry:
+                return GL_GEOMETRY_SHADER
+            }
+        }
+    }
+    
+    public static func createShader(_ key: ShaderType) -> GLuint {
+        return glCreateShader(GLenum(key.raw))
     }
     
     public static func shaderSource(id: GLuint, sources: [String]) {
@@ -619,28 +636,6 @@ public enum gl {
 //        }
 //        
 //        internal func finish() {
-//            guard self.vertexes.count > 0 else { return }
-//            glEnableClientState(GLenum(GL_VERTEX_ARRAY))
-//            
-//            if self.colors.count > 0 {
-//                glEnableClientState(GLenum(GL_COLOR_ARRAY))
-//            }
-//            
-//            let vertexBuffer = self.vertexes.flatMap { $0.buffer }
-//            glVertexPointer(4, GLenum(GL_FLOAT), 0, vertexBuffer);
-//            
-//            if self.colors.count > 0 {
-//                let colorBuffer = self.colors.flatMap { $0.buffer }
-//                glColorPointer(4, GLenum(GL_FLOAT), 0, colorBuffer);
-//            }
-//            
-//            glDrawArrays(self.mode.raw, 0, GLsizei(self.vertexes.count));
-//            
-//            if self.colors.count > 0 {
-//                glDisableClientState(GLenum(GL_COLOR_ARRAY))
-//            }
-//            
-//            glDisableClientState(GLenum(GL_VERTEX_ARRAY))
 //        }
 //    }
 //    #endif
@@ -663,7 +658,7 @@ public enum gl {
 //            action()
 //            glEnd()
 //        #endif
-//        //else 
+//        //else
 //        //stack
 //        //https://pandorawiki.org/Porting_to_GLES_from_GL
 //        
