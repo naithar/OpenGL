@@ -74,6 +74,9 @@ extension GLboolean: Gettable {
 }
 //Int, GLint
 
+//typealias ProgramID = GLuint
+
+
 public enum gl {
     
     //glGetError() // https://www.khronos.org/opengl/wiki/GLAPI/glGetError
@@ -318,7 +321,7 @@ public enum gl {
         #endif
     }
     
-    //https://www.opengl.org/sdk/docs/man/html/glGetString.xhtml
+    
 //    https://www.opengl.org/sdk/docs/man/html/glGet.xhtml
     public static func get<T: Gettable, Result>(_ type: T.Type,
                            key: GLenum,
@@ -328,9 +331,73 @@ public enum gl {
         return try closure(result.map { T.convert($0) })
     }
     
+    //https://www.opengl.org/sdk/docs/man/html/glGetString.xhtml
     public static func string(for key: GLenum) -> String {
         guard let cString = glGetString(key) else { return "" }
         return String(cString: cString)
+    }
+    
+    public static func createShader(for key: GLenum) -> GLuint {
+        return glCreateShader(key)
+    }
+    
+    public static func shaderSource(id: GLuint, sources: [String]) {
+
+        var array = [UnsafePointer<GLchar>?]()
+        
+        for shader in sources {
+            shader.withCString { string in
+                array.append(string)
+            }
+        }
+        
+        glShaderSource(id, GLsizei(array.count), array, nil)
+    }
+    
+    public static func compileShader(id: GLuint) {
+        glCompileShader(id)
+    }
+    
+    //https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGetShaderiv.xml
+    //
+    public static func shaderInfo(id: GLuint, for key: GLenum) -> GLint {
+        var value: GLint = 0
+        glGetShaderiv(id, key, &value)
+        return value
+    }
+    
+    public static func shaderInfoLog(id: GLuint, length: GLint) -> String? {
+        var log: [Int8] = []
+        glGetShaderInfoLog(id, length, nil, &log)
+        return String.init(validatingUTF8: log)
+    }
+    
+    public static func createProgram() -> GLuint {
+        return glCreateProgram()
+    }
+    
+    public static func deleteShader(id: GLuint) {
+        glDeleteShader(id)
+    }
+    
+    public static func attach(shader shaderID: GLuint, to programID: GLuint) {
+        glAttachShader(programID, shaderID)
+    }
+    
+    public static func linkProgram(id: GLuint) {
+        glLinkProgram(id)
+    }
+    
+    public static func programInfo(id: GLuint, for key: GLenum) -> GLint {
+        var value: GLint = 0
+        glGetProgramiv(id, key, &value)
+        return value
+    }
+    
+    public static func programInfoLog(id: GLuint, length: GLint) -> String? {
+        var log: [Int8] = []
+        glGetProgramInfoLog(id, length, nil, &log)
+        return String.init(validatingUTF8: log)
     }
     
     public enum MatrixMode {
