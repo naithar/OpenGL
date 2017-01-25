@@ -332,9 +332,40 @@ public enum gl {
     }
     
     //https://www.opengl.org/sdk/docs/man/html/glGetString.xhtml
-    public static func string(for key: GLenum) -> String {
-        guard let cString = glGetString(key) else { return "" }
-        return String(cString: cString)
+    
+    public enum StringKey {
+
+        case vendor
+        case renderer
+        case version
+        case shadingLanguageVersion
+        case extensions
+        
+        internal var raw: Int32 {
+            switch self {
+            case .vendor:
+                return GL_VENDOR
+            case .renderer:
+                return GL_RENDERER
+            case .version:
+                return GL_VERSION
+            case .shadingLanguageVersion:
+                return GL_SHADING_LANGUAGE_VERSION
+            case .extensions:
+                return GL_EXTENSIONS
+            }
+        }
+    }
+    public static func string(for key: StringKey, index: Int? = nil) -> String {
+        if let index = index {
+            guard let cString = glGetStringi(GLenum(key.raw), GLuint(index)) else { return "" }
+            return String(cString: cString)
+        } else if key != .extensions {
+            guard let cString = glGetString(GLenum(key.raw)) else { return "" }
+            return String(cString: cString)
+        }
+        
+        return ""
     }
     
     public static func createShader(for key: GLenum) -> GLuint {
@@ -397,7 +428,7 @@ public enum gl {
     public static func programInfoLog(id: GLuint, length: GLint) -> String? {
         var log: [Int8] = []
         glGetProgramInfoLog(id, length, nil, &log)
-        return String.init(validatingUTF8: log)
+        return String(validatingUTF8: log)
     }
     
     public enum MatrixMode {
