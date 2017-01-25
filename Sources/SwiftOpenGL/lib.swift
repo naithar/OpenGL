@@ -331,8 +331,6 @@ public enum gl {
         return try closure(result.map { T.convert($0) })
     }
     
-    //https://www.opengl.org/sdk/docs/man/html/glGetString.xhtml
-    
     public enum StringKey {
 
         case vendor
@@ -389,11 +387,33 @@ public enum gl {
         glCompileShader(id)
     }
     
-    //https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGetShaderiv.xml
-    //
-    public static func shaderInfo(id: GLuint, for key: GLenum) -> GLint {
+    public enum ShaderKey {
+
+        case type
+        case deleteStatus
+        case compileStatus
+        case infoLogLength
+        case shaderSourceLength
+
+        internal var raw: Int32 {
+            switch self {
+            case .type:
+                return GL_SHADER_TYPE
+            case .deleteStatus:
+                return GL_DELETE_STATUS
+            case .compileStatus:
+                return GL_COMPILE_STATUS
+            case .infoLogLength:
+                return GL_INFO_LOG_LENGTH
+            case .shaderSourceLength:
+                return GL_SHADER_SOURCE_LENGTH
+            }
+        }
+    }
+
+    public static func shaderInfo(id: GLuint, for key: ShaderKey) -> GLint {
         var value: GLint = 0
-        glGetShaderiv(id, key, &value)
+        glGetShaderiv(id, GLenum(key.raw), &value)
         return value
     }
     
@@ -418,6 +438,8 @@ public enum gl {
     public static func linkProgram(id: GLuint) {
         glLinkProgram(id)
     }
+    
+    //https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGetProgramiv.xml
     
     public static func programInfo(id: GLuint, for key: GLenum) -> GLint {
         var value: GLint = 0
