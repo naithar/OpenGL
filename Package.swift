@@ -1,10 +1,10 @@
 import PackageDescription
 
 let package = Package(
-    name: "SwiftOpenGL",
+    name: "SOGL",
     targets: [
         Target(name: "COpenGL", dependencies: []),
-        Target(name: "SwiftOpenGL", dependencies: ["COpenGL"]),
+        Target(name: "SOGL", dependencies: ["COpenGL"]),
     ], dependencies: [
     ]
 )
