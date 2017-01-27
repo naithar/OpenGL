@@ -224,26 +224,14 @@ extension gl {
     }
     
     public static func color(_ color: gl.Color) {
-        #if os(iOS)
-            if let context = DrawingContext.current {
-                context.add(color: color)
-            }
-        #endif
+//         #if os(iOS)
+//             if let context = DrawingContext.current {
+//                 context.add(color: color)
+//             }
+//         #endif
         
         glColor4f(GLfloat(color.red), GLfloat(color.green), GLfloat(color.blue), GLfloat(color.alpha))
     }
-    
-    public static func vertex(_ vertex: gl.Vertex) {
-        #if os(iOS)
-            if let context = DrawingContext.current {
-                context.add(vertex: vertex)
-            }
-        #else
-            glVertex4f(GLfloat(vertex.x), GLfloat(vertex.y), GLfloat(vertex.z), GLfloat(vertex.w))
-        #endif
-    }
-    
-    
     
     public enum MatrixMode {
         
@@ -396,6 +384,11 @@ extension gl {
 //    }
     
     #if !os(iOS)
+    
+    public static func vertex(_ vertex: gl.Vertex) {
+        glVertex4f(GLfloat(vertex.x), GLfloat(vertex.y), GLfloat(vertex.z), GLfloat(vertex.w))
+    }
+    
     public static func begin(_ mode: DrawMode) {
         glBegin(mode.raw)
     }
